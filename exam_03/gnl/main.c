@@ -9,29 +9,42 @@
 /*   Updated: 2025/03/06 21:05:12 by jonnavar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-// printf() for debugging
+
+// printf()
 #include <stdio.h>
-// open() to open files
+// open()
 #include <fcntl.h>
+// close()
+#include <unistd.h>
+// free()
+#include <stdlib.h>
 
 char	*get_next_line(int fd);
 
-int	main(void)
+int	main(int argc, char **argv)
 {
 	int		fd;
-	char	*data_obtained;
+	char	*next_line;
 
-	fd = open("./reading_files/file_nocontent.txt", O_RDONLY);
+	if (argc != 2)
+		return (EXIT_FAILURE);
+	fd = open(argv[1], O_RDONLY);
 	if (fd == -1)
 	{
-		printf("ERROR: the file could not be opened.\n");
-		return (0);
+		printf("ERROR: file could not be opened.\n");
+		return (EXIT_FAILURE);
 	}
 	printf("INFO: file descriptor=%i\n\n", fd);
-	data_obtained = get_next_line(fd);
-	printf("INFO: data_obtained=\"%s\"\n", data_obtained);
-	if (data_obtained)
-		free(data_obtained);
+	next_line = get_next_line(fd);
+	printf("INFO: data in file=\n");
+	while (next_line)
+	{
+		printf("%s", next_line);
+		free(next_line);
+		next_line = get_next_line(fd);
+	}
+	if (next_line)
+		free(next_line);
 	close(fd);
-	return (0);
+	return (EXIT_SUCCESS);
 }

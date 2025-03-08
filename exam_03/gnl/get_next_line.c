@@ -9,176 +9,311 @@
 /*   Updated: 2025/03/06 21:02:26 by jonnavar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "./get_next_line.h"
 
-char	*gnl_cut(const char *string, size_t start, size_t length)
+#include <unistd.h>
+#include <stdlib.h>
+
+#ifndef BUFFER_SIZE
+# define BUFFER_SIZE 1
+#endif
+
+/**
+ * @note This file won't comply norminette, but exam 03 doesn't require it
+ */
+
+/**
+ * @brief Gets the length of a string until '\0' (excluded).
+ */
+size_t	gnl_strlen(const char *str)
 {
-	char	*result;
-	size_t	index;
-	size_t	string_length;
+	size_t	i;
 
-	if (!string)
+	if (!str)
+		return (0);
+	i = 0;
+	while (str[i])
+		i ++;
+	return (i);
+}
+
+/**
+ * @brief Copies a string, including the null character '\0'.
+ *
+ * @return A copy of "str", dynamically allocated.
+ */
+char	*gnl_strcpy(const char *str)
+{
+	char	*copy;
+	size_t	length;
+	size_t	i;
+
+	if (!str)
 		return (NULL);
-	string_length = gnl_length(string);
-	if (start > string_length)
-		return (gnl_copy(""));
-	if (start + length > string_length)
-		length = string_length - start;
-	result = (char *) malloc(sizeof(char) * length + 1);
-	if (!result)
+	length = gnl_strlen(str);
+	copy = (char *) malloc(sizeof(char) * length + 1);
+	if (!copy)
 		return (NULL);
-	index = 0;
-	while (string[start + index] && index < length)
+	i = 0;
+	while (i < length + 1)
 	{
-		result[index] = string[start + index];
-		index ++;
+		copy[i] = str[i];
+		i ++;
 	}
-	result[index] = '\0';
-	return (result);
+	return (copy);
 }
 
-char	*gnl_copy(const char *string)
+/**
+ * @brief Gets a dynamically allocated piece of a string.
+ *
+ * @param str Target string.
+ * @param start First character of the segment.
+ * @param end Amount of characters included in the segment.
+ *
+ * @return A null-terminated string, starting on "start".
+ *         Includes "end" characters, and a null-terminator '\0'.
+ *
+ * If the combination of "start" and "end" exceeds "str" length, 
+ * it adjusts "end" to avoid reading out of bounds.
+ */
+char	*gnl_cut(const char *str, size_t start, size_t end)
 {
-	char	*result;
-	ssize_t	index;
-	ssize_t	result_length;
+	char	*cut;
+	size_t	i;
+	size_t	strlen;
 
-	if (!string)
+	if (!str)
 		return (NULL);
-	result_length = gnl_length(string) + 1;
-	result = (char *) malloc(sizeof(char) * result_length);
-	if (!result)
+	strlen = gnl_strlen(str);
+	if (start > strlen)
+		return (gnl_strcpy(""));
+	if (start + end > strlen)
+		end = strlen - start;
+	cut = (char *) malloc(sizeof(char) * end + 1);
+	if (!cut)
 		return (NULL);
-	index = -1;
-	while (++ index < result_length)
-		result[index] = string[index];
-	return (result);
-}
-
-char	*gnl_concat(const char *destination, const char *source)
-{
-	char		*result;
-	size_t		result_length;
-	ssize_t		source_length;
-	ssize_t		dest_length;
-
-	if (!destination || !source)
-		return (NULL);
-	result_length = gnl_length(destination) + gnl_length(source) + 1;
-	result = (char *) malloc(sizeof(char) * result_length);
-	if (!result)
-		return (NULL);
-	dest_length = -1;
-	while (destination[++ dest_length])
-		result[dest_length] = destination[dest_length];
-	source_length = -1;
-	while (source[++ source_length])
-		result[dest_length + source_length] = source[source_length];
-	result[dest_length + source_length] = '\0';
-	return (result);
-}
-
-char	*gnl_contains(const char *string, char character)
-{
-	char	*aux_pointer;
-	int		index;
-
-	if (!string)
-		return (NULL);
-	aux_pointer = (char *) string;
-	index = 0;
-	while (aux_pointer[index])
+	i = 0;
+	while (str[start + i] && i < end)
 	{
-		if (aux_pointer[index] == character)
-			return (aux_pointer + index);
-		index ++;
+		cut[i] = str[start + i];
+		i ++;
+	}
+	cut[i] = '\0';
+	return (cut);
+}
+
+/**
+ * @brief Joins two strings together, and returns a pointer to the result.
+ * 
+ * The returned string is null-terminated and dynamically allocated.
+ */
+char	*gnl_concat(const char *dest, const char *src)
+{
+	char		*concat;
+	size_t		len_concat;
+	size_t		len_dest;
+	size_t		len_src;
+
+	if (!dest || !src)
+		return (NULL);
+	len_concat = gnl_strlen(dest) + gnl_strlen(src);
+	concat = (char *) malloc(sizeof(char) * len_concat + 1);
+	if (!concat)
+		return (NULL);
+	len_dest = 0;
+	while (dest[len_dest])
+	{
+		concat[len_dest] = dest[len_dest];
+		len_dest ++;
+	}
+	len_src = 0;
+	while (src[len_src])
+	{
+		concat[len_dest + len_src] = src[len_src];
+		len_src ++;
+	}
+	concat[len_dest + len_src] = '\0';
+	return (concat);
+}
+
+/**
+ * @brief Gets the position of character "c" in string "str".
+ */
+char	*gnl_get_pos(const char *str, char c)
+{
+	char	*aux;
+	size_t	i;
+
+	if (!str)
+		return (NULL);
+	aux = (char *) str;
+	i = 0;
+	while (aux[i])
+	{
+		if (aux[i] == c)
+			return (&aux[i]);
+		i ++;
 	}
 	return (NULL);
 }
 
-size_t	gnl_length(const char *string)
+/**
+ * @brief Breaks a string, at 'i' index, in two parts.
+ *
+ * @param str A double pointer to the string to break.
+ * @param i Position where the string is willing to be broken.
+ *
+ * @return The string pointed to by "str", null-terminated on 'i' index.
+ */
+char	*gnl_break_str(char **str, int i)
 {
-	size_t	index;
+	char	*cut;
+	char	*aux;
 
-	if (!string)
-		return (0);
-	index = 0;
-	while (string[index])
-		index ++;
-	return (index);
+	cut = gnl_cut(*str, i, gnl_strlen(*str) - i);
+	aux = *str;
+	aux[i] = '\0';
+	*str = cut;
+	return (aux);
 }
 
-char	*gnl_check_nl(int next_line, char **file_address)
+/**
+ * @brief Handles the case when end of file is reached.
+ *
+ * @param str Address of the static buffer that stores the accumulated 
+ *            data read from the file descriptor so far.
+ * @param read_buf Buffer used for "read()" calls.
+ *
+ * - If the string pointed to by "str" is empty: 
+ *   frees "*str", assigns it to NULL, and returns NULL.
+ * - If the string pointed to by "str" is not empty: 
+ *   assigns NULL to "*str", and returns the original value of "*str" 
+ *   (this effectively returns the complete "*str", moving it from "str").
+ * 
+ * This function will free "read_buf" memory.
+ */
+char	*gnl_handle_eof(char **str, char *read_buf)
 {
-	char	*substring;
-	char	*result;
+	char	*aux;
 
-	substring = NULL;
-	if (next_line <= 0)
+	if (read_buf)
+		free(read_buf);
+	if (**str == '\0')
 	{
-		if (**file_address == '\0')
-		{
-			free(*file_address);
-			*file_address = NULL;
-			return (NULL);
-		}
-		result = *file_address;
-		*file_address = NULL;
-		return (result);
+		free(*str);
+		*str = NULL;
+		return (NULL);
 	}
-	substring = gnl_cut(*file_address, next_line, BUFFER_SIZE);
-	result = *file_address;
-	result[next_line] = '\0';
-	*file_address = substring;
-	return (result);
+	aux = *str;
+	*str = NULL;
+	return (aux);
 }
 
-void	gnl_free_address(char **pointer)
+/**
+ * @brief Frees the memory pointed to by "buffer" and returns NULL.
+ *
+ * This function assigns "*buffer" to NULL.
+ */
+char	*gnl_free_buffer(char **buffer)
 {
-	if (*pointer)
+	if (buffer && *buffer)
 	{
-		free(*pointer);
-		pointer = NULL;
+		free(*buffer);
+		*buffer = NULL;
 	}
+	return (NULL);
 }
 
-char	*gnl_read(int fd, char **file_address, char *reading_buffer)
+/**
+ * @brief Reads from "fd" until a new line is found, or EOF is reached.
+ *
+ * @param fd The file descriptor pointing to the file to read from.
+ * @param buffer Address of the static buffer that stores the accumulated 
+ *               data read from the file descriptor so far.
+ *
+ * @return The (null-terminated) string read from "fd", including 
+ *         a '\n' character if present.
+ *         If EOF is reached or "read()" is unable to read from "fd", 
+ *         returns NULL.
+ *
+ * "buffer" address points to a static buffer that is meant to accumulate 
+ * the reading process after a new line character, if EOF is not reached yet.
+ *
+ * When this function reaches EOF, returns the progress read from "fd", 
+ * and sets the address pointed to by "buffer" to NULL.
+ */
+char	*gnl_read(int fd, char **buffer)
 {
-	ssize_t	bytes_read;
-	char	*saved_str;
-	char	*next_line;
+	ssize_t	bytes;
+	char	*read_buf;
+	char	*concat;
+	char	*new_line;
 
-	bytes_read = 0;
-	saved_str = NULL;
-	next_line = gnl_contains(*file_address, '\n');
-	while (!next_line)
+	bytes = 0;
+	read_buf = (char *) malloc(sizeof(char) * BUFFER_SIZE + 1);
+	if (!read_buf)
+		return (gnl_free_buffer(buffer));
+	new_line = gnl_get_pos(*buffer, '\n');
+	while (!new_line)
 	{
-		bytes_read = read(fd, reading_buffer, BUFFER_SIZE);
-		if (bytes_read <= 0)
-			return (gnl_check_nl(bytes_read, file_address));
-		reading_buffer[bytes_read] = '\0';
-		saved_str = gnl_concat(*file_address, reading_buffer);
-		gnl_free_address(file_address);
-		*file_address = saved_str;
-		next_line = gnl_contains(*file_address, '\n');
+		bytes = read(fd, read_buf, BUFFER_SIZE);
+		if (bytes <= 0)
+			return (gnl_handle_eof(buffer, read_buf));
+		read_buf[bytes] = '\0';
+		concat = gnl_concat(*buffer, read_buf);
+		if (buffer && *buffer)
+			free(*buffer);
+		*buffer = concat;
+		new_line = gnl_get_pos(*buffer, '\n');
 	}
-	return (gnl_check_nl(next_line - *file_address + 1, file_address));
+	if (read_buf)
+		free(read_buf);
+	return (gnl_break_str(buffer, new_line - *buffer + 1));
 }
 
+/**
+ * @brief Gets a line read from a file descriptor.
+ *
+ * @param fd The file descriptor to read from.
+ * 
+ * @return A pointer to the (dynamically allocated) string read.
+ *         In case of error, returns NULL.
+ *         The returned string is null-terminated ('\0').
+ *
+ *
+ * The line read is defined as a succession of 0 to 'n' characters 
+ * that end with '\n' or with the end of file (EOF).
+ * Note: "read()" returns 0 if the EOF is reached.
+ *
+ * The line returned includes the '\n' character in case there is one.
+ *
+ * The program including this function will be compiled modifying 
+ * BUFFER_SIZE with the flag "-D BUFFER_SIZE=xx".
+ *
+ * Calling this function in a loop, allows to read an entire file 
+ * (static char *).
+ *
+ * Calling this function with different file descriptors allows to 
+ * read them simultaneously in the same program without losing 
+ * reading progress (*buffers[1024], where 1024 is the maximum amount 
+ * of different file descriptors allowed in a given program).
+ *
+ * Note: value "1024" is chosen because it's usually the soft cap of 
+ * file descriptors for a process in Linux. So, this program supports 
+ * up to that amount, but if it's run in an OS that doesn't allow 
+ * this amount of file descriptors, "open()" will not provide 
+ * a proper file descriptor to the caller. 
+ * This case is out of scope of this function. If an unproper file descriptor 
+ * is provided, it will be considered as an error (and return NULL).
+ */
 char	*get_next_line(int fd)
 {
-	static char	*file_addresses[256];
-	char		*reading_buffer;
-	char		*result;
+	static char	*buffers[1024];
+	char		*next_line;
 
-	if (fd < 0 || BUFFER_SIZE <= 0 || fd > 256)
+	if (fd < 0 || BUFFER_SIZE <= 0 || fd > 1024)
 		return (NULL);
-	reading_buffer = (char *) malloc(sizeof(char) * BUFFER_SIZE + 1);
-	if (!reading_buffer)
-		return (NULL);
-	if (!file_addresses[fd])
-		file_addresses[fd] = gnl_copy("");
-	result = gnl_read(fd, &file_addresses[fd], reading_buffer);
-	gnl_free_address(&reading_buffer);
-	return (result);
+	if (!buffers[fd])
+		buffers[fd] = gnl_strcpy("");
+	next_line = gnl_read(fd, &buffers[fd]);
+	return (next_line);
 }
