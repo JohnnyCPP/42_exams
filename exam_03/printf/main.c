@@ -103,6 +103,8 @@ void	test_print(void)
 	test_print_str();
 	test_print_num();
 	test_print_hexnum();
+	test_print_no_specifiers();
+	test_print_null_args();
 }
 
 /**
@@ -178,8 +180,6 @@ void	test_return(void)
 int	main(void)
 {
 	test_print();
-	test_print_no_specifiers();
-	test_print_null_args();
 	test_return();
 	return (EXIT_SUCCESS);
 }
