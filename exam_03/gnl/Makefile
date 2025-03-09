@@ -30,4 +30,4 @@ valgrind:
 	valgrind --track-origins=yes -s --leak-check=full --show-leak-kinds=all ./main ./files_to_read/file_4.txt
 
 
-.PHONY: all clean re
+.PHONY: all clean re sanitize valgrind
