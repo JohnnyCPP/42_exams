@@ -267,7 +267,7 @@ char	*gnl_read(int fd, char **buffer)
 	}
 	if (read_buf)
 		free(read_buf);
-	return (gnl_break_str(buffer, new_line - *buffer + 1));
+	return (gnl_break_str(buffer, (int)(new_line - *buffer) + 1));
 }
 
 /**
