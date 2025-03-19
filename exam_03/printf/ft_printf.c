@@ -28,7 +28,9 @@
  */
 int	ft_putchar(char c)
 {
-	return (write(STDOUT_FILENO, &c, 1));
+	if (write(STDOUT_FILENO, &c, 1) == 1)
+		return (1);
+	return (0);
 }
 
 /**
@@ -39,13 +41,15 @@ int	ft_putchar(char c)
 int	ft_putstr(char *str)
 {
 	int	i;
+	int	printed;
 
 	if (!str)
 		return (0);
 	i = 0;
+	printed = 0;
 	while (str[i])
 	{
-		ft_putchar(str[i]);
+		printed += ft_putchar(str[i]);
 		i ++;
 	}
 	return (i);
@@ -60,35 +64,11 @@ int	ft_strlen(const char *str)
 {
 	int	i;
 
+	if (!str)
+		return (0);
 	i = 0;
 	while (str[i] != '\0')
 		i ++;
-	return (i);
-}
-
-/**
- * @brief Copies characters from a string to another.
- *
- * @param dest Where the characters will be copied to.
- * @param src Where the characters will be copied from.
- * @param strlen Amount of characters to copy.
- *
- * @return Amount of characters copied from "src" to "dest".
- *         If "dest" or "src" are NULL, returns 0.
- */
-int	ft_strlcpy(char *dest, const char *src, int strlen)
-{
-	int	i;
-
-	if (!dest || !src)
-		return (0);
-	i = 0;
-	while (src[i] != '\0' && i < strlen)
-	{
-		dest[i] = src[i];
-		i ++;
-	}
-	dest[i] = '\0';
 	return (i);
 }
 
@@ -104,17 +84,20 @@ int	ft_strlcpy(char *dest, const char *src, int strlen)
  */
 char	*ft_strdup(const char *str)
 {
-	char	*strcpy;
-	int		strlen;
+	char	*strdup;
+	int		i;
 
 	if (!str)
 		return (NULL);
-	strlen = ft_strlen(str);
-	strcpy = (char *) malloc(sizeof(char) * strlen + 1);
-	if (!strcpy)
-		return (NULL);
-	ft_strlcpy(strcpy, str, strlen);
-	return (strcpy);
+	strdup = (char *) malloc(sizeof(char) * ft_strlen(str) + 1);
+	i = 0;
+	while (str[i] != '\0')
+	{
+		strdup[i] = str[i];
+		i ++;
+	}
+	strdup[i] = '\0';
+	return (strdup);
 }
 
 /**
@@ -221,6 +204,8 @@ int	ft_hexlen(unsigned int hexnum)
 	int				i;
 
 	base = 16;
+	if (!hexnum)
+		return (1);
 	i = 0;
 	while (hexnum)
 	{
@@ -283,7 +268,8 @@ int	ft_print_num(va_list var_args)
 	number = va_arg(var_args, int);
 	itoa = ft_itoa(number);
 	strlen = ft_putstr(itoa);
-	free(itoa);
+	if (itoa)
+		free(itoa);
 	return (strlen);
 }
 
