@@ -1,1 +1,40 @@
-TODO
+Assignment name:	sandbox
+Expected files:		sandbox.c
+Allowed functions:	fork, waitpid, exit, alarm, sigaction, kill, printf, strsignal, errno, sigaddset, sigemptyset, sigfillset, sigdelset, sigismember
+
+
+Write the following function:
+
+#include <stdbool.h>
+int	sandbox(void (*f)(void), unsigned int timeout, bool verbose);
+
+
+This function must test if the function 'f' is a <nice> or <bad> function. 
+It will return 1 if 'f' is <nice>. 
+It will return 0 if 'f' is <bad>. 
+It will return -1 if, during execution of <f>, an error occurs .
+
+A function is considered <bad> if any of the following occurs:
+
+- It is terminated by a signal
+  - The process is killed and removed from the system
+  - SIGTERM, SIGKILL, SIGINT, SIGQUIT
+- It is stopped by a signal
+  - The process is paused but still exists in memory
+  - SIGSTOP, SIGTSTP, SIGTTIN
+- It exits with an exit code that is not 0
+- It times out
+
+
+If 'verbose' is true, it must write the appropiate message among the following:
+
+"Nice function!\n"
+"Bad function: exited with code <exit_code>\n"
+"Bad function: <signal_description>\n"
+"Bad function: timed out after <timeout> seconds\n"
+
+
+It must not leak processes. 
+Even in zombie state, which will be checked using wait.
+
+The code will be tested with very bad functions.
