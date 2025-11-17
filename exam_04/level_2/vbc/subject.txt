@@ -1,3 +1,8 @@
+Assignment name:	vbc
+Expected files:		*.c *.h
+Allowed functions:	malloc, calloc, realloc, free, printf, isdigit, write
+
+
 Write a program that will print the result of a math expression given as an argument.
 
 It must handle the following operators:
