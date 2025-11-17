@@ -1,0 +1,50 @@
+Write a program that will print the result of a math expression given as an argument.
+
+It must handle the following operators:
+- "+": addition
+- "*": multiplication
+- "()": parentheses
+
+The operands will have magnitudes between 0 and 9.
+
+
+Examples:
+
+./vbc '1' | cat -e
+1$
+
+./vbc '2+3' | cat -e
+5$
+
+./vbc '3*4+5' | cat -e
+17$
+
+./vbc '3+4*5' | cat -e
+23$
+
+./vbc '(3+4)*5' | cat -e
+35$
+
+./vbc '(((((2+2)*2+2)*2+2)2+2)*2+2)*2' | cat -e
+188$
+
+./vbc '1'
+1
+
+./vbc '3*4+5'
+17
+
+./vbc '(3+4)*5'
+35
+
+./vbc (((((((1)))))))
+1
+
+./vbc '(((((2+2)*2+2)*2+2)*2+2)*2+2)*2'
+188
+
+./vbc '1+2+3+4+5'
+15
+
+./vbc '((1+3)*12+(3*(2+6)))'
+unexpected token '2'
