@@ -1,11 +1,33 @@
 Write a program that will print the result of a math expression given as an argument.
 
 It must handle the following operators:
+
 - "+": addition
 - "*": multiplication
 - "()": parentheses
 
+Whitespaces in the expression don't need to be handled.
+
 The operands will have magnitudes between 0 and 9.
+
+In case of unexpected symbol:
+
+- Exit with code 1
+- Print "Unexpected token '%c'\n"
+
+In case of unbalanced parentheses:
+
+- Exit with code 1
+- Print "Unexpected token '%c'\n"
+
+In case of unexpected symbol, if the symbol is EOF:
+
+- Exit with code 1
+- Print "Unexpected end of input\n"
+
+In case of syscall failure, it will exit with code 1 without printing anything.
+
+There's auxiliary code provided in the same directory where the subject is.
 
 
 Examples:
