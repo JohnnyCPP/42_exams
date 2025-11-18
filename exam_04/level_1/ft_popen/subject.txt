@@ -14,6 +14,9 @@ If type is 'w' the function must return a file descriptor connected to the input
 In case of error or invalid parameter the function must return -1.
 
 
+This exercise is inspired by the libc's popen().
+
+
 For example, the function could be used like that:
 
 int main()
