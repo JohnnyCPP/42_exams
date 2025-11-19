@@ -1,12 +1,12 @@
-NAME	= ft_popen
-SRC		= ft_popen.c main.c
+NAME	= picoshell
+SRC		= picoshell.c main.c
 
 
 all: ${NAME}
 
 
 ${NAME}:
-	cc ${SRC} -o ${NAME}
+	cc -g3 ${SRC} -o ${NAME}
 
 
 clean:
