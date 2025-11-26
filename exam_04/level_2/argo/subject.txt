@@ -34,7 +34,7 @@ Don't handle spaces, consider them as invalid tokens.
 
 In case of doubt how to parse JSON, read RFC8259.
 Tested with the main, the output should be the same as the input, except for errors.
-There are some functions in argo.c that might be of help.
+There are some functions in given.c that might be of help.
 
 
 Examples:
