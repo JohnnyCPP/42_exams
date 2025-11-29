@@ -1,4 +1,6 @@
 #include "argo.h"
+#include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stddef.h>
@@ -20,17 +22,15 @@
  */ 
 static	int	argo_parse_json(json *dst, FILE *stream);
 
+static	void	argo_free_pairs(pair *pairs, size_t length);
+
 #define MSG_UNEXP_TOKEN "Unexpected token '%c'\n"
 #define MSG_UNEXP_EOF "Unexpected end of input\n"
 
 #define BITS_IN_BYTE 8
-#define BITS_IN_8_BYTES 64
 
 #define RET_FAILURE -1
 #define RET_SUCCESS 1
-
-#define TRUE 1
-#define FALSE 0
 
 /**
  * In Greek mythology, the Argo was the ship used 
@@ -44,59 +44,42 @@ static	int	argo_parse_json(json *dst, FILE *stream);
  * argo() navigates through JSON syntax
  */
 
-void	free_json(json j)
+void	argo_free_json(json *j)
 {
-	int	i;
+	pair	*pairs;
+	size_t	size;
 
-	if (j.type == STRING)
-		free(j.string);
-	else if (j.type == MAP)
+	if (j->type == STRING)
+		free(j->string);
+	else if (j->type == MAP)
 	{
-		i = 0;
-		while (i < j.map.size)
-		{
-			free(j.map.data[i].key);
-			free_json(j.map.data[i].value);
-			i ++;
-		}
-		free(j.map.data);
+		pairs = j->map.data;
+		size = j->map.size;
+		argo_free_pairs(pairs, size);
 	}
 }
 
-static	void	free_json_map(pair *pairs, size_t length)
+static	void	argo_free_pairs(pair *pairs, size_t size)
 {
 	size_t	i;
 
 	i = 0;
-	while (i < length)
+	while (i < size)
 	{
 		free(pairs[i].key);
-		free_json(pairs[i].value);
+		argo_free_json(&pairs[i].value);
 		i ++;
 	}
 	free(pairs);
 }
 
-static	int	argo_skip(FILE *stream)
-{
-	if (getc(stream) == EOF)
-	{
-		printf(MSG_UNEXP_EOF);
-		return (RET_FAILURE);
-	}
-	return (RET_SUCCESS);
-}
-
-static	int	argo_getnext(FILE *stream)
+static	int	argo_get_next(FILE *stream)
 {
 	int	c;
 
 	c = getc(stream);
 	if (c == EOF)
-	{
-		printf(MSG_UNEXP_EOF);
-		return (RET_FAILURE);
-	}
+		return (EOF);
 	return (c);
 }
 
@@ -106,30 +89,18 @@ static	int	argo_peek(FILE *stream)
 
 	c = getc(stream);
 	if (c == EOF)
-	{
-		printf(MSG_UNEXP_EOF);
-		return (RET_FAILURE);
-	}
-	ungetc(c, stream);
+		return (EOF);
+	if (ungetc(c, stream) == EOF)
+		return (EOF);
 	return (c);
 }
 
-static	int	argo_expect(int expected, FILE *stream)
+static	void	argo_print_unexpected(int c)
 {
-	int	c;
-
-	c = getc(stream);
-	if (c == EOF)
-	{
+	if (c == '\0')
 		printf(MSG_UNEXP_EOF);
-		return (FALSE);
-	}
-	if (c != expected)
-	{
+	else
 		printf(MSG_UNEXP_TOKEN, c);
-		return (FALSE);
-	}
-	return (TRUE);
 }
 
 static	int	argo_parse_integer(int *n, FILE *stream)
@@ -139,21 +110,17 @@ static	int	argo_parse_integer(int *n, FILE *stream)
 	return (RET_SUCCESS);
 }
 
-static	int	argo_resize_buffer(size_t current, size_t *max, char **buffer)
+static	int	argo_resize_buffer(char **buffer, size_t *max, size_t current)
 {
-	char	*realloc_buff;
+	char	*realloc_buffer;
 
 	if (current + 1 < *max)
 		return (RET_SUCCESS);
 	*max *= 2;
-	realloc_buff = (char *) realloc(*buffer, *max);
-	if (!realloc_buff)
-	{
-		free(*buffer);
-		*buffer = NULL;
+	realloc_buffer = (char *) realloc(*buffer, *max);
+	if (!realloc_buffer)
 		return (RET_FAILURE);
-	}
-	*buffer = realloc_buff;
+	*buffer = realloc_buffer;
 	return (RET_SUCCESS);
 }
 
@@ -164,15 +131,13 @@ static	int	argo_handle_escseq(int *c, FILE *stream)
 	if (*c != '\\')
 		return (RET_SUCCESS);
 	peek = argo_peek(stream);
-	if (peek == RET_FAILURE)
-		return (RET_FAILURE);
 	if (peek == '\\')
-		*c = argo_getnext(stream);
-	if (peek == '\'')
-		*c = argo_getnext(stream);
-	if (peek == '"')
-		*c = argo_getnext(stream);
-	if (*c == RET_FAILURE)
+		*c = argo_get_next(stream);
+	else if (peek == '\'')
+		*c = argo_get_next(stream);
+	else if (peek == '"')
+		*c = argo_get_next(stream);
+	if (*c == EOF)
 		return (RET_FAILURE);
 	return (RET_SUCCESS);
 }
@@ -184,65 +149,40 @@ static	int	argo_parse_string(char **str, FILE *stream)
 	size_t	current;
 	char	*buffer;
 
-	if (argo_skip(stream) == RET_FAILURE)
-		return (RET_FAILURE);
-	max = BITS_IN_8_BYTES;
+	if (argo_peek(stream) == '"')
+		argo_get_next(stream);
+	max = BITS_IN_BYTE;
 	current = 0;
 	buffer = (char *) malloc(max * sizeof(char));
 	if (!buffer)
 		return (RET_FAILURE);
-	c = argo_getnext(stream);
-	if (c == RET_FAILURE)
-	{
-		free(buffer);
-		return (RET_FAILURE);
-	}
+	c = argo_get_next(stream);
 	while (c != '"')
 	{
+		if (c == EOF)
+		{
+			free(buffer);
+			return (RET_FAILURE);
+		}
 		if (argo_handle_escseq(&c, stream) == RET_FAILURE)
 		{
 			free(buffer);
 			return (RET_FAILURE);
 		}
-		if (argo_resize_buffer(current, &max, &buffer) == RET_FAILURE)
-			return (RET_FAILURE);
-		buffer[current] = c;
-		c = argo_getnext(stream);
-		if (c == RET_FAILURE)
+		if (argo_resize_buffer(&buffer, &max, current) == RET_FAILURE)
 		{
 			free(buffer);
 			return (RET_FAILURE);
 		}
-		current ++;
+		buffer[current ++] = c;
+		c = argo_get_next(stream);
 	}
 	buffer[current] = '\0';
 	*str = buffer;
 	return (RET_SUCCESS);
 }
 
-static	int	argo_is_empty(json *dst, FILE *stream, pair **pairs)
-{
-	int	c;
-
-	c = getc(stream);
-	if (c == EOF)
-	{
-		printf(MSG_UNEXP_EOF);
-		return (RET_FAILURE);
-	}
-	if (c == '}')
-	{
-		free(*pairs);
-		*pairs = NULL;
-		dst->map.data = NULL;
-		dst->map.size = 0;
-		return (TRUE);
-	}
-	ungetc(c, stream);
-	return (FALSE);
-}
-
-static	int	argo_resize_pairs(pair **pairs, size_t current, size_t *max)
+static	int	argo_resize_pairs(pair **pairs, size_t *max, size_t current)
 {
 	pair	*realloc_pairs;
 
@@ -251,20 +191,23 @@ static	int	argo_resize_pairs(pair **pairs, size_t current, size_t *max)
 	*max *= 2;
 	realloc_pairs = (pair *) realloc(*pairs, *max * sizeof(pair));
 	if (!realloc_pairs)
-	{
-		free_json_map(*pairs, current);
 		return (RET_FAILURE);
-	}
 	*pairs = realloc_pairs;
 	return (RET_SUCCESS);
 }
 
 static	int	argo_parse_pair(pair *pair, FILE *stream)
 {
+	int	c;
+
 	if (argo_parse_string(&pair->key, stream) == RET_FAILURE)
 		return (RET_FAILURE);
-	if (argo_expect(':', stream) == FALSE)
+	c = argo_get_next(stream);
+	if (c == EOF || c != ':')
+	{
+		argo_print_unexpected(c);
 		return (RET_FAILURE);
+	}
 	return (argo_parse_json(&pair->value, stream));
 }
 
@@ -275,42 +218,41 @@ static	int	argo_parse_map(json *dst, FILE *stream)
 	pair	*pairs;
 	int		c;
 
-	if (argo_skip(stream) == RET_FAILURE)
-		return (RET_FAILURE);
+	if (argo_peek(stream) == '{')
+		argo_get_next(stream);
 	max = BITS_IN_BYTE;
 	current = 0;
 	pairs = (pair *) malloc(max * sizeof(pair));
 	if (!pairs)
 		return (RET_FAILURE);
-	c = argo_is_empty(dst, stream, &pairs);
-	if (c == RET_FAILURE)
-		return (RET_FAILURE);
-	if (c == TRUE)
-		return (RET_SUCCESS);
-	while (TRUE)
+	c = argo_get_next(stream);
+	while (c != '}')
 	{
-		if (argo_resize_pairs(&pairs, current, &max) == RET_FAILURE)
+		if (c == EOF)
+		{
+			argo_free_pairs(pairs, current);
 			return (RET_FAILURE);
+		}
+		if (argo_resize_pairs(&pairs, &max, current) == RET_FAILURE)
+		{
+			argo_free_pairs(pairs, current);
+			return (RET_FAILURE);
+		}
 		if (argo_parse_pair(&pairs[current], stream) == RET_FAILURE)
 		{
-			free_json_map(pairs, current);
+			argo_free_pairs(pairs, current);
 			return (RET_FAILURE);
 		}
 		current ++;
-		c = argo_getnext(stream);
-		if (c == RET_FAILURE)
+		c = argo_get_next(stream);
+		if (c != ',' && c != '}')
 		{
-			free_json_map(pairs, current);
+			argo_free_pairs(pairs, current);
+			argo_print_unexpected(c);
 			return (RET_FAILURE);
 		}
-		if (c == '}')
-			break ;
-		if (c != ',')
-		{
-			printf(MSG_UNEXP_TOKEN, c);
-			free_json_map(pairs, current);
-			return (RET_FAILURE);
-		}
+		if (c == ',')
+			c = argo_get_next(stream);
 	}
 	dst->map.data = pairs;
 	dst->map.size = current;
@@ -339,7 +281,7 @@ static	int	argo_parse_json(json *dst, FILE *stream)
 		dst->type = MAP;
 		return (argo_parse_map(dst, stream));
 	}
-	printf(MSG_UNEXP_TOKEN, c);
+	argo_print_unexpected(c);
 	return (RET_FAILURE);
 }
 

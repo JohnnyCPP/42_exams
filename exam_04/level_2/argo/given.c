@@ -62,7 +62,6 @@ int	expect(FILE *stream, char c)
 	return 0;
 }
 
-/*
 void	free_json(json j)
 {
 	switch (j.type)
@@ -81,7 +80,7 @@ void	free_json(json j)
 		default:
 			break ;
 	}
-}*/
+}
 
 void	serialize(json j)
 {
