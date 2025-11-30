@@ -1,9 +1,29 @@
-#include "argo.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stddef.h>
+
+typedef struct	json {
+	enum {
+		MAP,
+		INTEGER,
+		STRING
+	} type;
+	union {
+		struct {
+			struct pair	*data;
+			size_t		size;
+		} map;
+		int	integer;
+		char	*string;
+	};
+}	json;
+
+typedef struct	pair {
+	char	*key;
+	json	value;
+}	pair;
 
 /**
  * this function prototype needs to be declared 
@@ -264,8 +284,11 @@ static	int	argo_parse_json(json *dst, FILE *stream)
 	int	c;
 
 	c = argo_peek(stream);
-	if (c == RET_FAILURE)
-		return (RET_FAILURE);
+	if (c == EOF)
+	{
+		argo_print_unexpected(c);
+		return (EOF);
+	}
 	if (c == '-' || isdigit(c))
 	{
 		dst->type = INTEGER;

@@ -1,4 +1,5 @@
-#include "vbc.h"
+# include <stdio.h>
+# include <ctype.h>
 
 /**
  * factor: the most basic building blocks
@@ -80,17 +81,23 @@
 #define TRUE 1
 #define FALSE 0
 
-#define EXP_ARGS 2
 #define RET_FAILURE 1
 #define RET_SUCCESS 0
 
 #define MSG_UNEXP_TOKEN "Unexpected token '%c'\n"
 #define MSG_UNEXP_EOF "Unexpected end of input\n"
 
-// forward declaration because of mutual recursion
-static	int	vbc_parse_expr(t_parser *parser);
+typedef struct	s_parser
+{
+	char	*input;
+	int		pos;
+	int		is_failed;
+}	t_parser;
 
-static	char	vbc_get_curr(t_parser *parser)
+// forward declaration because of mutual recursion
+static	int	vbc_parse_expression(t_parser *parser);
+
+static	char	vbc_get_current(t_parser *parser)
 {
 	char	current;
 
@@ -100,62 +107,62 @@ static	char	vbc_get_curr(t_parser *parser)
 
 static	void	vbc_advance(t_parser *parser)
 {
-	if (vbc_get_curr(parser) != '\0')
+	if (vbc_get_current(parser) != '\0')
 		parser->pos ++;
 }
 
-static	void	vbc_print_unexp(t_parser *parser, char c)
+static	void	vbc_print_unexpected(t_parser *parser, char c)
 {
 	if (c == '\0')
 		printf(MSG_UNEXP_EOF);
 	else
 		printf(MSG_UNEXP_TOKEN, c);
-	parser->error = TRUE;
+	parser->is_failed = TRUE;
 }
 
-static	int	vbc_parse_num(t_parser *parser)
+static	int	vbc_parse_number(t_parser *parser)
 {
 	char	current;
-	int		num;
+	int		number;
 
-	current = vbc_get_curr(parser);
+	current = vbc_get_current(parser);
 	if (isdigit((int) current))
 	{
-		num = current - '0';
+		number = current - '0';
 		vbc_advance(parser);
-		return (num);
+		return (number);
 	}
-	vbc_print_unexp(parser, current);
+	vbc_print_unexpected(parser, current);
 	return (0);
 }
 
 // <factor>      ::= <NUMBER> | '(' <expression> ')'
-static	int	vbc_parse_fact(t_parser *parser)
+static	int	vbc_parse_factor(t_parser *parser)
 {
 	char	current;
 	int		expression;
 
-	if (parser->error)
+	if (parser->is_failed)
 		return (0);
-	current = vbc_get_curr(parser);
+	current = vbc_get_current(parser);
 	if (current == '(')
 	{
 		vbc_advance(parser);
-		expression = vbc_parse_expr(parser);
-		if (parser->error)
+		expression = vbc_parse_expression(parser);
+		if (parser->is_failed)
 			return (0);
-		current = vbc_get_curr(parser);
+		current = vbc_get_current(parser);
 		if (current != ')')
 		{
-			vbc_print_unexp(parser, current);
+			vbc_print_unexpected(parser, current);
 			return (0);
 		}
 		vbc_advance(parser);
 		return (expression);
 	}
 	else if (isdigit((int) current))
-		return (vbc_parse_num(parser));
-	vbc_print_unexp(parser, current);
+		return (vbc_parse_number(parser));
+	vbc_print_unexpected(parser, current);
 	return (0);
 }
 
@@ -165,34 +172,34 @@ static	int	vbc_parse_term(t_parser *parser)
 	char	current;
 	int		factor;
 
-	if (parser->error)
+	if (parser->is_failed)
 		return (0);
-	factor = vbc_parse_fact(parser);
-	current = vbc_get_curr(parser);
-	while (!parser->error && current == '*')
+	factor = vbc_parse_factor(parser);
+	current = vbc_get_current(parser);
+	while (!parser->is_failed && current == '*')
 	{
 		vbc_advance(parser);
-		factor *= vbc_parse_fact(parser);
-		current = vbc_get_curr(parser);
+		factor *= vbc_parse_factor(parser);
+		current = vbc_get_current(parser);
 	}
 	return (factor);
 }
 
 // <expression>  ::= <term> ('+' <term>)*
-static	int	vbc_parse_expr(t_parser *parser)
+static	int	vbc_parse_expression(t_parser *parser)
 {
 	char	current;
 	int		term;
 
-	if (parser->error)
+	if (parser->is_failed)
 		return (0);
 	term = vbc_parse_term(parser);
-	current = vbc_get_curr(parser);
-	while (!parser->error && current == '+')
+	current = vbc_get_current(parser);
+	while (!parser->is_failed && current == '+')
 	{
 		vbc_advance(parser);
 		term += vbc_parse_term(parser);
-		current = vbc_get_curr(parser);
+		current = vbc_get_current(parser);
 	}
 	return (term);
 }
@@ -200,20 +207,22 @@ static	int	vbc_parse_expr(t_parser *parser)
 int	main(int argc, char **argv)
 {
 	t_parser	parser;
+	char		current;
 	int			result;
 
-	if (argc != EXP_ARGS)
+	if (argc != 2)
 		return (RET_FAILURE);
 	parser.input = argv[1];
 	parser.pos = 0;
-	parser.error = FALSE;
-	result = vbc_parse_expr(&parser);
-	if (!parser.error && vbc_get_curr(&parser) == '\0')
+	parser.is_failed = FALSE;
+	result = vbc_parse_expression(&parser);
+	current = vbc_get_current(&parser);
+	if (!parser.is_failed && current == '\0')
 	{
 		printf("%d\n", result);
 		return (RET_SUCCESS);
 	}
-	else if (!parser.error)
-		vbc_print_unexp(&parser, vbc_get_curr(&parser));
+	else if (parser.is_failed)
+		vbc_print_unexpected(&parser, current);
 	return (RET_FAILURE);
 }

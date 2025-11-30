@@ -6,7 +6,7 @@ all: ${NAME}
 
 
 ${NAME}:
-	cc -g3 -I ./ ${SRC} -o ${NAME}
+	cc -g3 ${SRC} -o ${NAME}
 
 
 clean:
