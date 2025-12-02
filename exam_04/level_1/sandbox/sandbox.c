@@ -8,15 +8,11 @@
 #include <signal.h>
 #include <errno.h>
 
-#define CODE_TIMEOUT 142
-
-#define FAIL -1
-
-#define GOOD_FUNCTION 1
+#define NICE_FUNCTION 1
 #define BAD_FUNCTION 0
 #define ERROR_OCCURS -1
 
-#define MSG_GOOD_FUNCTION "Nice function!\n"
+#define MSG_NICE_FUNCTION "Nice function!\n"
 #define MSG_EXIT_CODE "Bad function: exited with code %d\n"
 #define MSG_EXIT_DESC "Bad function: %s\n"
 #define MSG_TIME_OUT "Bad function: timed out after %d seconds\n"
@@ -62,8 +58,7 @@ static	int	get_stop_signal(int wstatus, bool verbose)
 	{
 		stop_signal = WSTOPSIG(wstatus);
 		description = strsignal(stop_signal);
-		if (description)
-			printf(MSG_EXIT_DESC, description);
+		printf(MSG_EXIT_DESC, description);
 	}
 	return (BAD_FUNCTION);
 }
@@ -76,8 +71,8 @@ static	int	get_exit_status(int wstatus, bool verbose)
 	if (exit_status == 0)
 	{
 		if (verbose)
-			printf(MSG_GOOD_FUNCTION);
-		return (GOOD_FUNCTION);
+			printf(MSG_NICE_FUNCTION);
+		return (NICE_FUNCTION);
 	}
 	else
 	{
@@ -101,7 +96,7 @@ static	int	run_parent(pid_t pid, bool verbose, unsigned int timeout)
 	int	wstatus;
 
 	wstatus = 0;
-	if (waitpid(pid, &wstatus, WUNTRACED) == FAIL)
+	if (waitpid(pid, &wstatus, WUNTRACED) == -1)
 	{
 		if (errno == EINTR)
 			return (kill_child(pid, verbose, timeout));
