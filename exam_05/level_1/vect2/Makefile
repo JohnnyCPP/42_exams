@@ -1,9 +1,9 @@
-NAME		= bigint
+NAME		= vect2
 
 CXX			= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
 
-SRC			= bigint.cpp main.cpp
+SRC			= vect2.cpp main.provided.cpp
 
 
 all: ${NAME}
