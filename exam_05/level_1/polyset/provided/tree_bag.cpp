@@ -105,14 +105,14 @@ void tree_bag::print_node(node *current) {
 	}
 }
 
-tree_bag::node *tree_bag::copy_node(node *current) {
+void *tree_bag::copy_node(node *current) {
 	if (current == nullptr) {
 		return nullptr;
 	} else {
 		node *new_node = new node;
 		new_node->value = current->value;
-		new_node->l = copy_node(current->l);
-		new_node->r = copy_node(current->r);
+		new_node->l = static_cast<node*>(copy_node(current->l));
+		new_node->r = static_cast<node*>(copy_node(current->r));
 		return new_node;
 	}
 }
