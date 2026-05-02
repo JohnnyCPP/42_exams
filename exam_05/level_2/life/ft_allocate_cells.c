@@ -7,6 +7,6 @@ int	ft_allocate_cells(t_board *board)
 	cells = board->width * board->height;
 	board->cells = (char *) calloc(cells + 1, sizeof(char));
 	if (!board->cells)
-		return (-1);
-	return (0);
+		return (0);
+	return (1);
 }
