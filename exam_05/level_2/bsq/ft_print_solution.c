@@ -12,7 +12,7 @@ void	ft_print_solution(t_map *map)
 		col = 0;
 		while (col < map->width)
 		{
-			cell = ft_get_cell(map->grid, row, col, map->width);
+			cell = ft_get_cell(map, row, col);
 			fprintf(stdout, "%c", cell);
 			col ++;
 		}
