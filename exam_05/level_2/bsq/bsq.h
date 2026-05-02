@@ -20,11 +20,11 @@ typedef struct s_map
 	int		max_col;
 }	t_map;
 
-char	ft_get_cell(char *grid, int row, int col, int width);
-void	ft_set_cell(char *grid, int row, int col, int width, char cell);
+void	ft_set_cell(t_map *map, int row, int col, char cell);
+char	ft_get_cell(t_map *map, int row, int col);
 
-int		ft_get_size(int *dp, int row, int col, int width);
-void	ft_set_size(int *dp, int row, int col, int width, int size);
+void	ft_set_size(t_map *map, int row, int col, int size);
+int		ft_get_size(t_map *map, int row, int col);
 
 int		ft_min_of(int a, int b, int c);
 int		ft_isnumber(char c);
@@ -35,7 +35,7 @@ void	ft_free_map(t_map *map);
 
 int		ft_validate_line(char *line);
 int		ft_validate_printables(t_map *map);
-int		ft_validate_grids(t_map *map);
+int		ft_validate_grid(t_map *map);
 
 void	ft_solve_bsq(t_map *map);
 
