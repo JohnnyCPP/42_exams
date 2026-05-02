@@ -30,7 +30,7 @@ int	main(int argc, char **argv)
 				ft_print_solution(&map);
 				ft_free_map(&map);
 			}
-			if (i < argc - 1)
+			if (i + 1 < argc)
 				fprintf(stdout, "\n");
 			i ++;
 		}
