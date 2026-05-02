@@ -26,7 +26,7 @@ int	ft_validate_printables(t_map *map)
 	return (1);
 }
 
-int	ft_validate_grids(t_map *map)
+int	ft_validate_grid(t_map *map)
 {
 	int	found_obstacle;
 	int	found_empty;
