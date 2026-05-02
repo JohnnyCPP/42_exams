@@ -30,7 +30,7 @@ void	ft_read_drawing(t_game *game)
 {
 	char	buffer;
 
-	while (read(0, &buffer, 1) == 1)
+	while (read(STDIN_FILENO, &buffer, 1) == 1)
 	{
 		if (buffer == 'x')
 			ft_toggle_pen(game);
