@@ -13,15 +13,18 @@ static int	ft_parse_header(char *line, t_map *map)
 		i ++;
 	}
 	map->height = height;
-	while (line[i] == ' ')
+	while (ft_isspace(line[i]))
 		i ++;
-	map->empty = line[i ++];
-	while (line[i] == ' ')
+	if (line[i])
+		map->empty = line[i ++];
+	while (ft_isspace(line[i]))
 		i ++;
-	map->obstacle = line[i ++];
-	while (line[i] == ' ')
+	if (line[i])
+		map->obstacle = line[i ++];
+	while (ft_isspace(line[i]))
 		i ++;
-	map->full = line[i ++];
+	if (line[i])
+		map->full = line[i ++];
 	if (map->height <= 0)
 		return (0);
 	if (map->empty == map->obstacle || map->empty == map->full 
@@ -42,10 +45,13 @@ static int	ft_get_width(char *line)
 
 static int	ft_alloc_memory(t_map *map)
 {
-	map->grid = (char *) calloc(map->height * map->width + 1, sizeof(char));
+	size_t	map_size;
+
+	map_size = map->height * map->width;
+	map->grid = (char *) calloc(map_size + 1, sizeof(char));
 	if (!map->grid)
 		return (0);
-	map->dp = (int *) calloc(map->height * map->width + 1, sizeof(int));
+	map->dp = (int *) calloc(map_size + 1, sizeof(int));
 	if (!map->dp)
 	{
 		free(map->grid);
@@ -55,7 +61,7 @@ static int	ft_alloc_memory(t_map *map)
 	return (1);
 }
 
-static int	ft_store_line(char *line, int row, t_map *map)
+static int	ft_insert_line(char *line, int row, t_map *map)
 {
 	int	width;
 	int	col;
@@ -70,7 +76,7 @@ static int	ft_store_line(char *line, int row, t_map *map)
 	{
 		if (line[col] != map->empty && line[col] != map->obstacle)
 			return (0);
-		ft_set_cell(map->grid, row, col, map->width, line[col]);
+		ft_set_cell(map, row, col, line[col]);
 		col ++;
 	}
 	return (1);
@@ -79,16 +85,15 @@ static int	ft_store_line(char *line, int row, t_map *map)
 int	ft_parse_map(char *filename, t_map *map)
 {
 	int		header_read;
-	FILE	*file;
+	int		row;
 	char	*line;
 	size_t	size;
-	int		row;
+	FILE	*file;
 
 	header_read = 0;
-	file = NULL;
+	row = 0;
 	line = NULL;
 	size = 0;
-	row = 0;
 	if (filename)
 		file = fopen(filename, "r");
 	else
@@ -110,7 +115,7 @@ int	ft_parse_map(char *filename, t_map *map)
 				goto error;
 			if (!ft_alloc_memory(map))
 				goto error;
-			if (!ft_store_line(line, row, map))
+			if (!ft_insert_line(line, row, map))
 				goto error;
 			row ++;
 		}
@@ -118,14 +123,14 @@ int	ft_parse_map(char *filename, t_map *map)
 		{
 			if (row == map->height && line[0] == '\n')
 				break;
-			if (!ft_store_line(line, row, map))
+			if (!ft_insert_line(line, row, map))
 				goto error;
 			row ++;
 		}
 	}
 	if (row != map->height)
 		goto error;
-	if (!ft_validate_printables(map) || !ft_validate_grids(map))
+	if (!ft_validate_printables(map) || !ft_validate_grid(map))
 		goto error;
 	free(line);
 	if (filename && file)
