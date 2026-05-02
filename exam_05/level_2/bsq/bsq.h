@@ -28,6 +28,7 @@ void	ft_set_size(int *dp, int row, int col, int width, int size);
 
 int		ft_min_of(int a, int b, int c);
 int		ft_isnumber(char c);
+int		ft_isspace(char c);
 
 int		ft_parse_map(char *filename, t_map *map);
 void	ft_free_map(t_map *map);
