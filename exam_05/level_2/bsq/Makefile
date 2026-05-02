@@ -6,6 +6,7 @@ CFLAGS		= -Wall -Wextra -Werror -g3
 
 SRC			= ft_free_map.c \
 			  ft_isnumber.c \
+			  ft_isspace.c \
 			  ft_min_of.c \
 			  ft_parse_map.c \
 			  ft_print_solution.c \

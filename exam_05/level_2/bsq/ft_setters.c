@@ -13,7 +13,7 @@ char	ft_get_cell(t_map *map, int row, int col)
 	int	index;
 
 	index = row * map->width + col;
-	return (map->grid[row * width + col]);
+	return (map->grid[index]);
 }
 
 void	ft_set_size(t_map *map, int row, int col, int size)
