@@ -4,7 +4,7 @@ static void	ft_update_max(t_map *map, int row, int col)
 {
 	int	size;
 
-	size = ft_get_size(map->dp, row, col, map->width);
+	size = ft_get_size(map, row, col);
 	if (size > map->max_size)
 	{
 		map->max_size = size;
@@ -17,11 +17,10 @@ static void	ft_find_bsq(t_map *map)
 {
 	int		row;
 	int		col;
-	int		size;
-	char	cell;
+	int		min_size;
 	int		above;
-	int		left;
 	int		diagonal;
+	int		left;
 
 	row = 0;
 	while (row < map->height)
@@ -29,19 +28,18 @@ static void	ft_find_bsq(t_map *map)
 		col = 0;
 		while (col < map->width)
 		{
-			cell = ft_get_cell(map->grid, row, col, map->width);
-			if (cell == map->obstacle)
-				size = 0;
+			if (ft_get_cell(map, row, col) == map->obstacle)
+				min_size = 0;
 			else if (row == 0 || col == 0)
-				size = 1;
+				min_size = 1;
 			else
 			{
-				above = ft_get_size(map->dp, row - 1, col, map->width);
-				left = ft_get_size(map->dp, row, col - 1, map->width);
-				diagonal = ft_get_size(map->dp, row - 1, col - 1, map->width);
-				size = 1 + ft_min_of(above, left, diagonal);
+				above = ft_get_size(map, row - 1, col);
+				diagonal = ft_get_size(map, row - 1, col - 1);
+				left = ft_get_size(map, row, col - 1);
+				min_size = ft_min_of(above, left, diagonal) + 1;
 			}
-			ft_set_size(map->dp, row, col, map->width, size);
+			ft_set_size(map, row, col, min_size);
 			ft_update_max(map, row, col);
 			col ++;
 		}
@@ -64,8 +62,7 @@ static void	ft_mark_bsq(t_map *map)
 		col = 0;
 		while (col < map->max_size)
 		{
-			ft_set_cell(map->grid, start_row + row, start_col + col,
-					map->width, map->full);
+			ft_set_cell(map, start_row + row, start_col + col, map->full);
 			col ++;
 		}
 		row ++;
@@ -74,10 +71,6 @@ static void	ft_mark_bsq(t_map *map)
 
 void	ft_solve_bsq(t_map *map)
 {
-	map->max_size = 0;
-	map->max_row = 0;
-	map->max_col = 0;
-	ft_find_bsq(map);
-	if (map->max_size > 0)
-		ft_mark_bsq(map);
+	ft_compute_sizes(map);
+	ft_mark_bsq(map);
 }
