@@ -2,11 +2,12 @@
 
 static int	ft_count_neighbors(t_board *board, int x, int y)
 {
-	int	count;
-	int	delta_x;
-	int	delta_y;
+	char	cell;
+	int		neighbors;
+	int		delta_x;
+	int		delta_y;
 
-	count = 0;
+	neighbors = 0;
 	delta_y = -1;
 	while (delta_y <= 1)
 	{
@@ -18,23 +19,24 @@ static int	ft_count_neighbors(t_board *board, int x, int y)
 				delta_x ++;
 				continue ;
 			}
-			if (ft_get_cell(board, x + delta_x, y + delta_y) == ALIVE)
-				count ++;
+			cell = ft_get_cell(board, x + delta_x, y + delta_y);
+			if (cell == ALIVE)
+				neighbors ++;
 			delta_x ++;
 		}
 		delta_y ++;
 	}
-	return (count);
+	return (neighbors);
 }
 
 static char	ft_next_cell_state(t_board *board, int x, int y)
 {
+	char	cell;
 	int		neighbors;
-	char	current;
 
-	current = ft_get_cell(board, x, y);
+	cell = ft_get_cell(board, x, y);
 	neighbors = ft_count_neighbors(board, x, y);
-	if (current == ALIVE)
+	if (cell == ALIVE)
 	{
 		if (neighbors == 2 || neighbors == 3)
 			return (ALIVE);
@@ -48,47 +50,36 @@ static char	ft_next_cell_state(t_board *board, int x, int y)
 	}
 }
 
-static void	ft_compute_generation(t_board *current, t_board *next)
+static void	ft_compute_generation(t_board *src, t_board *dst)
 {
-	char	next_cell;
 	int		x;
 	int		y;
+	char	next_cell;
 
 	y = 0;
-	while (y < current->height)
+	while (y < src->height)
 	{
 		x = 0;
-		while (x < current->width)
+		while (x < src->width)
 		{
-			next_cell = ft_next_cell_state(current, x, y);
-			ft_set_cell(next, x, y, next_cell);
+			next_cell = ft_next_cell_state(src, x, y);
+			ft_set_cell(dst, x, y, next_cell);
 			x ++;
 		}
 		y ++;
 	}
 }
 
-static int	ft_allocate_next_cells(t_board *src, t_board *dst)
-{
-	int	cells;
-
-	cells = src->width * src->height;
-	dst->width = src->width;
-	dst->height = src->height;
-	dst->cells = (char *) calloc(cells + 1, sizeof(char));
-	if (!dst->cells)
-		return (-1);
-	return (0);
-}
-
 int	ft_simulate_generation(t_game *game)
 {
 	t_board	next_board;
 
-	if (ft_allocate_next_cells(&game->board, &next_board) == -1)
-		return (-1);
+	next_board.width = game->board.width;
+	next_board.height = game->board.height;
+	if (!ft_allocate_cells(&next_board))
+		return (0);
 	ft_compute_generation(&game->board, &next_board);
 	ft_free_cells(&game->board);
 	game->board.cells = next_board.cells;
-	return (0);
+	return (1);
 }
