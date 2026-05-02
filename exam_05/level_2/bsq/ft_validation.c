@@ -1,5 +1,15 @@
 #include "bsq.h"
 
+int	ft_validate_line(char *line)
+{
+	int	i;
+
+	i = 0;
+	while (line[i] && line[i] != '\n')
+		i ++;
+	return (line[i] == '\n');
+}
+
 static int	ft_isprintable(char c)
 {
 	return (' ' <= c && c <= '~');
@@ -16,28 +26,18 @@ int	ft_validate_printables(t_map *map)
 	return (1);
 }
 
-int	ft_validate_line(char *line)
-{
-	int	i;
-
-	i = 0;
-	while (line[i] && line[i] != '\n')
-		i ++;
-	if (line[i] != '\n')
-		return (0);
-	return (1);
-}
-
 int	ft_validate_grids(t_map *map)
 {
 	int	found_obstacle;
 	int	found_empty;
+	int	map_size;
 	int	i;
 
 	found_obstacle = 0;
 	found_empty = 0;
+	map_size = map->height * map->width;
 	i = 0;
-	while (i < map->height * map->width)
+	while (i < map_size)
 	{
 		if (!found_obstacle && map->grid[i] == map->obstacle)
 			found_obstacle = 1;
