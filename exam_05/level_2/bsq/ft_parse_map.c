@@ -84,13 +84,13 @@ static int	ft_insert_line(char *line, int row, t_map *map)
 
 int	ft_parse_map(char *filename, t_map *map)
 {
-	int		header_read;
+	int		header_parsed;
 	int		row;
 	char	*line;
 	size_t	size;
 	FILE	*file;
 
-	header_read = 0;
+	header_parsed = 0;
 	row = 0;
 	line = NULL;
 	size = 0;
@@ -102,11 +102,11 @@ int	ft_parse_map(char *filename, t_map *map)
 		return (0);
 	while (getline(&line, &size, file) != -1)
 	{
-		if (!header_read)
+		if (!header_parsed)
 		{
 			if (!ft_parse_header(line, map))
 				goto error;
-			header_read = 1;
+			header_parsed = 1;
 		}
 		else if (row == 0)
 		{
