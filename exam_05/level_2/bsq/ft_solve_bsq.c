@@ -13,7 +13,7 @@ static void	ft_update_max(t_map *map, int row, int col)
 	}
 }
 
-static void	ft_find_bsq(t_map *map)
+static void	ft_compute_sizes(t_map *map)
 {
 	int		row;
 	int		col;
