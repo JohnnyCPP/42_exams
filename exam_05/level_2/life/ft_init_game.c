@@ -27,8 +27,8 @@ int	ft_init_game(t_game *game, char **argv)
 	game->board.height = atoi(argv[2]);
 	game->iterations = atoi(argv[3]);
 	ft_set_defaults(game);
-	if (ft_allocate_cells(&game->board) == -1)
-		return (-1);
+	if (!ft_allocate_cells(&game->board))
+		return (0);
 	ft_kill_cells(&game->board);
-	return (0);
+	return (1);
 }
