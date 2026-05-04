@@ -18,13 +18,13 @@ int	main(int argc, char **argv)
 
 	if (!ft_validate_args(argc, argv))
 		return (1);
-	if (ft_init_game(&game, argv) == -1)
+	if (!ft_init_game(&game, argv))
 		return (1);
 	ft_read_drawing(&game);
 	i = 0;
 	while (i < game.iterations)
 	{
-		if (ft_simulate_generation(&game) == -1)
+		if (!ft_simulate_generation(&game))
 		{
 			ft_free_cells(&game.board);
 			return (1);
